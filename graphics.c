@@ -1,6 +1,7 @@
 #include "graphics.h"
 #include "gba.h"
 #include "images/sprites.h"
+#include "images/Background.h"
 #include "logic.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,6 +32,7 @@ void graphicsInit(void) {
     for(int i = 0; i < 128; i++) {
         shadow[i].attr0 = ATTR0_HIDE;
     }
+
     //playerCharacter = &shadow[0];
     // playerCharacter->attr0 = 50 | SPRITES_PALETTE_TYPE | PLAYERCHARACTERSPRITE_SPRITE_SHAPE;
     // playerCharacter->attr1 = 50 | PLAYERCHARACTERSPRITE_SPRITE_SIZE;
@@ -56,6 +58,18 @@ static void drawShot0(int xpos, int ypos, int direction) {
     }
 }
 */
+static void drawArrow(GameArrow *arrow) {
+    if (arrow->inUse) {
+        ArrowData data;
+        createData(&data, arrow->type);
+        shadow[arrow->id].attr0 = arrow->ypos | data.baseAttr0;
+        shadow[arrow->id].attr1 = data.baseAttr1;
+        shadow[arrow->id].attr2 = data.baseAttr2;
+    } else {
+        shadow[arrow->id].attr0 = ATTR0_HIDE;
+    }
+}
+
 static void drawSprites(void) {
     DMA[3].src = shadow;
     DMA[3].dst = OAMMEM;
@@ -65,7 +79,8 @@ static void drawSprites(void) {
 // including the background and whatnot.
 void fullDrawAppState(AppState *state) {
     // TA-TODO: IMPLEMENT.
-    UNUSED(state);
+    drawFullScreenImageDMA(Background);
+    drawSprites();
 }
 
 // This function will be used to undraw (i.e. erase) things that might
@@ -83,6 +98,6 @@ void drawAppState(AppState *state) {
 
        // state->levelChange--;
     //}
-    UNUSED(state);
+    drawSprites();
 }
 

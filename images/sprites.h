@@ -1,19 +1,15 @@
 /*
  * Exported with nin10kit v1.7
- * Invocation command was nin10kit --mode=sprites --bpp=4 --for_bitmap sprites playerCharacterSprite.png playerShot.png deathCountText.png checkpointText.png savedText.png sonicSprites.gif --transparent=FFFFFF 
- * Time-stamp: Thursday 11/15/2018, 11:05:46
+ * Invocation command was nin10kit --mode=sprites --bpp=4 --for_bitmap --transparent=FFFFFF sprites AButton.png BButton.png DownArrow.png RightArrow.png 
+ * Time-stamp: Tuesday 02/26/2019, 13:37:42
  * 
  * Image Information
  * -----------------
- * playerCharacterSprite.png 16@16
- * playerShot.png 8@8
- * deathCountText.png 32@8
- * checkpointText.png 32@8
- * savedText.png 32@8
- * sonicSprites.gif (frame 0) 32@64
- * sonicSprites.gif (frame 1) 32@64
+ * AButton.png 32@32
+ * BButton.png 32@32
+ * DownArrow.png 32@32
+ * RightArrow.png 32@32
  * Transparent color: (255, 255, 255)
- * 
  * 
  * All bug reports / feature requests are to be filed here https://github.com/TricksterGuy/nin10kit/issues
  */
@@ -28,46 +24,29 @@ extern const unsigned short sprites_palette[256];
 #define SPRITES_PALETTE_SIZE 512
 #define SPRITES_PALETTE_LENGTH 256
 
-extern const unsigned short sprites[1296];
-#define SPRITES_SIZE 2592
-#define SPRITES_LENGTH 1296
+extern const unsigned short sprites[1024];
+#define SPRITES_SIZE 2048
+#define SPRITES_LENGTH 1024
 
-#define SONICSPRITES1_PALETTE_ID (0 << 12)
-#define SONICSPRITES1_ID 512
+#define BBUTTON_PALETTE_ID (0 << 12)
+#define BBUTTON_SPRITE_SHAPE (0 << 14)
+#define BBUTTON_SPRITE_SIZE (2 << 14)
+#define BBUTTON_ID 512
 
-#define PLAYERCHARACTERSPRITE_PALETTE_ID (1 << 12)
-#define PLAYERCHARACTERSPRITE_SPRITE_SHAPE (0 << 14)
-#define PLAYERCHARACTERSPRITE_SPRITE_SIZE (1 << 14)
-#define PLAYERCHARACTERSPRITE_ID 544
+#define DOWNARROW_PALETTE_ID (1 << 12)
+#define DOWNARROW_SPRITE_SHAPE (0 << 14)
+#define DOWNARROW_SPRITE_SIZE (2 << 14)
+#define DOWNARROW_ID 528
 
-#define SONICSPRITES0_PALETTE_ID (2 << 12)
-#define SONICSPRITES0_ID 548
+#define RIGHTARROW_PALETTE_ID (1 << 12)
+#define RIGHTARROW_SPRITE_SHAPE (0 << 14)
+#define RIGHTARROW_SPRITE_SIZE (2 << 14)
+#define RIGHTARROW_ID 544
 
-#define PLAYERSHOT_PALETTE_ID (1 << 12)
-#define PLAYERSHOT_SPRITE_SHAPE (0 << 14)
-#define PLAYERSHOT_SPRITE_SIZE (0 << 14)
-#define PLAYERSHOT_ID 580
-
-#define DEATHCOUNTTEXT_PALETTE_ID (1 << 12)
-#define DEATHCOUNTTEXT_SPRITE_SHAPE (1 << 14)
-#define DEATHCOUNTTEXT_SPRITE_SIZE (1 << 14)
-#define DEATHCOUNTTEXT_ID 581
-
-#define CHECKPOINTTEXT_PALETTE_ID (1 << 12)
-#define CHECKPOINTTEXT_SPRITE_SHAPE (1 << 14)
-#define CHECKPOINTTEXT_SPRITE_SIZE (1 << 14)
-#define CHECKPOINTTEXT_ID 585
-
-#define SAVEDTEXT_PALETTE_ID (1 << 12)
-#define SAVEDTEXT_SPRITE_SHAPE (1 << 14)
-#define SAVEDTEXT_SPRITE_SIZE (1 << 14)
-#define SAVEDTEXT_ID 589
-
-extern const unsigned short sonicSprites_frames[2];
-#define SONICSPRITES_FRAMES 2
-
-#define SONICSPRITES_SPRITE_SHAPE (2 << 14)
-#define SONICSPRITES_SPRITE_SIZE (3 << 14)
+#define ABUTTON_PALETTE_ID (1 << 12)
+#define ABUTTON_SPRITE_SHAPE (0 << 14)
+#define ABUTTON_SPRITE_SIZE (2 << 14)
+#define ABUTTON_ID 560
 
 #endif
 
