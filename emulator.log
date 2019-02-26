@@ -1,0 +1,23 @@
+Unknown configuration key throttle
+do_connect: could not connect to socket
+connect: No such file or directory
+VBA-M (BBA) [SDL]
+Searching for file vbam.cfg
+Searching current directory: /mnt/hgfs/2110Shared/SharedStuff/hw10SubmissionTest
+Searching home directory: /home/jballen73/.vbam
+Searching data directory: /usr/share/vbam
+Searching system config directory: /etc
+Reading configuration file.
+Searching for file vba-over.ini
+Searching current directory: /mnt/hgfs/2110Shared/SharedStuff/hw10SubmissionTest
+Searching home directory: /home/jballen73/.vbam
+Searching data directory: /usr/share/vbam
+Searching system config directory: /etc
+vba-over.ini NOT FOUND (using emulator settings)
+Trying patch IWannaBeTheStudent.ips
+Trying patch IWannaBeTheStudent.ups
+Trying patch IWannaBeTheStudent.ppf
+Trying to start LIRC: Failed
+Color depth: 32
+Shutting down
+10:07:03 20.11.2018: Wrote battery
