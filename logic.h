@@ -9,7 +9,8 @@
 #define POS2 (87)
 #define POS3 (121)
 #define POS4 (155)
-
+#define MAXWINDOW (8)
+typedef struct GameArrow GameArrow;
 
 typedef enum {
     RIGHT_ARROW,
@@ -17,13 +18,13 @@ typedef enum {
     A_PRESS,
     B_PRESS,
 } ArrowType;
-typedef struct {
+struct GameArrow {
     int inUse;
     int id;
     ArrowType type;
     int ypos;
     GameArrow *next;
-} GameArrow;
+};
 typedef struct{
     GameArrow *head;
     GameArrow *tail;
@@ -36,11 +37,18 @@ typedef struct {
     int baseAttr2;
 } ArrowData;
 typedef struct {
+    const int track[766][4];
+    int length;
+} Track;
+typedef struct {
     // Store whether or not the game is over in this member:
     int gameOver;
     int score;
     GameArrow *arrows[128];
     GameArrowQueue *arrowQueue;
+    GameArrowQueue *toBeUndrawn;
+    Track *track;
+    int curTime;
 } AppState;
 
 /*
@@ -63,4 +71,5 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
 // If you have anything else you need accessible from outside the logic.c
 // file, you can add them here. You likely won't.
 void createData(ArrowData *data, ArrowType type);
+GameArrow* dequeueArrow(GameArrowQueue *queue);
 #endif

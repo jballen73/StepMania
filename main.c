@@ -43,13 +43,13 @@ int main(void) {
             waitForVBlank();
             graphicsInit();
             // TA-TODO: Draw the start state here.
-            
+            fillScreenDMA(BLUE);
             state = START_WAIT_FOR_INPUT;
             break;
         case START_WAIT_FOR_INPUT:
             waitForVBlank();
             if (KEY_JUST_PRESSED(BUTTON_START, currentButtons, previousButtons)) {
-                state = START_AFTER_BUTTON;
+                state = APP_INIT;
                 frameCounter = 0;
             }
             break;
@@ -94,7 +94,8 @@ int main(void) {
 
             // Check if the app is exiting. If it is, then go to the exit state.
             if (nextAppState.gameOver) {
-               
+                hideSprites();
+                state = START;  
             }
             break;
         }

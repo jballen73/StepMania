@@ -2,7 +2,8 @@
 #include "graphics.h"
 #include "gba.h"
 #include <stdlib.h>
-#include "sprites.h"
+#include "images/sprites.h"
+#include "tracks/testTrack.h"
 //extern volatile OamEntry* shadow;
 void initializeAppState(AppState* appState) {
     // TA-TODO: Initialize everything that's part of this AppState struct here.
@@ -12,6 +13,11 @@ void initializeAppState(AppState* appState) {
     gaQueue->head = NULL;
     gaQueue->tail = NULL;
     gaQueue->size = 0;
+
+    GameArrowQueue *undrawnQueue = malloc(sizeof(GameArrowQueue));
+    undrawnQueue->head = NULL;
+    undrawnQueue->tail = NULL;
+    undrawnQueue->size = 0;
 
     for (int i = 0; i < 128; i++) {
         GameArrow *newArrow = malloc(sizeof(GameArrow));
@@ -27,6 +33,9 @@ void initializeAppState(AppState* appState) {
     appState->gameOver = 0;
     appState->score = 0;
     appState->arrowQueue = gaQueue;
+    appState->toBeUndrawn = undrawnQueue;
+    appState->curTime = 0;
+    appState->track = &testTrack;
 }
 
 
@@ -38,7 +47,7 @@ static void enqueueArrow(GameArrowQueue *queue, GameArrow *arrow) {
     }
     queue->size++;
 }
-static GameArrow* dequeueArrow(GameArrowQueue *queue) {
+GameArrow* dequeueArrow(GameArrowQueue *queue) {
     GameArrow* arrow = queue->head;
     queue->head = queue->head->next;
     queue->size--;
@@ -81,12 +90,14 @@ static void updateArrows(AppState *appState) {
     for (int i = 0; i < appState->arrowQueue->size; i++) {
         cur->ypos--;
         if (cur->ypos < 0) {
-            appState->score -= 5;
+            appState->score -= MAXWINDOW;
+            cur->inUse = 0;
             removeArrow(appState->arrowQueue, i);
+            enqueueArrow(appState->toBeUndrawn, cur);
         }
     }
 }
-static void parseTrackFrame(int *frame, AppState *appState) {
+static void parseTrackFrame(const int frame[4], AppState *appState) {
     if (frame[0]) {
         instantiateNewArrow(A_PRESS, appState->arrows, appState->arrowQueue);
     }
@@ -100,11 +111,55 @@ static void parseTrackFrame(int *frame, AppState *appState) {
         instantiateNewArrow(RIGHT_ARROW, appState->arrows, appState->arrowQueue);
     }
 }
+static void parseKeyPress(ArrowType pressedKey, AppState *state) {
+    GameArrow *cur = state->arrowQueue->head;
+    for (int i = 0; i < 5; i++) {
+        if (!cur) {
+            state->score -= MAXWINDOW;
+            return;
+        }
+        if (cur->type == pressedKey) {
+            if (cur->ypos < MAXWINDOW) {
+                cur->inUse = 0;
+                removeArrow(state->arrowQueue, i);
+                enqueueArrow(state->toBeUndrawn, cur);
+                state->score += (MAXWINDOW - cur->ypos);
+                return;
+            } else {
+                break;
+            }
+        }
+        cur = cur->next;
+    }
+    if (state->arrowQueue->head->ypos < 5) {
+        enqueueArrow(state->toBeUndrawn, dequeueArrow(state->arrowQueue));
+    }
+    state->score -= MAXWINDOW;
+}
 // This function processes your current app state and returns the new (i.e. next)
 // state of your application.
 AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 keysPressedNow) {
     AppState nextAppState = *currentAppState;
-    
+    if (KEY_JUST_PRESSED(BUTTON_A, keysPressedNow, keysPressedBefore)) {
+        parseKeyPress(A_PRESS, &nextAppState);
+    }
+    if (KEY_JUST_PRESSED(BUTTON_B, keysPressedNow, keysPressedBefore)) {
+        parseKeyPress(B_PRESS, &nextAppState);
+    }
+    if (KEY_JUST_PRESSED(BUTTON_DOWN, keysPressedNow, keysPressedBefore)) {
+        parseKeyPress(DOWN_ARROW, &nextAppState);
+    }
+    if (KEY_JUST_PRESSED(BUTTON_RIGHT, keysPressedNow, keysPressedBefore)) {
+        parseKeyPress(RIGHT_ARROW, &nextAppState);
+    }
+    if (vBlankCounter % 1 == 0) {
+        updateArrows(&nextAppState);
+        parseTrackFrame((nextAppState.track->track)[currentAppState->curTime], &nextAppState);
+        nextAppState.curTime++;
+    }
+    if (nextAppState.curTime > nextAppState.track->length) {
+        nextAppState.gameOver = 1;
+    }
     return nextAppState;
 }
 

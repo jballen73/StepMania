@@ -79,6 +79,7 @@ static void drawSprites(void) {
 // including the background and whatnot.
 void fullDrawAppState(AppState *state) {
     // TA-TODO: IMPLEMENT.
+    UNUSED(state);
     drawFullScreenImageDMA(Background);
     drawSprites();
 }
@@ -98,6 +99,14 @@ void drawAppState(AppState *state) {
 
        // state->levelChange--;
     //}
+    GameArrow *cur = state->arrowQueue->head;
+    while (cur) {
+        drawArrow(cur);
+        cur = cur->next;
+    }
+    while (state->toBeUndrawn->size) {
+        drawArrow(dequeueArrow(state->toBeUndrawn));
+    }
     drawSprites();
 }
 
