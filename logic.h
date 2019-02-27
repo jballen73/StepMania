@@ -37,7 +37,7 @@ typedef struct {
     int baseAttr2;
 } ArrowData;
 typedef struct {
-    const int track[766][4];
+    const char track[4096];
     int length;
 } Track;
 typedef struct {

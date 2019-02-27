@@ -58,15 +58,14 @@ static void drawShot0(int xpos, int ypos, int direction) {
 }
 */
 static void drawArrow(GameArrow *arrow) {
-    if (arrow->inUse) {
-        ArrowData data;
-        createData(&data, arrow->type);
-        shadow[arrow->id].attr0 = arrow->ypos | data.baseAttr0;
-        shadow[arrow->id].attr1 = data.baseAttr1;
-        shadow[arrow->id].attr2 = data.baseAttr2;
-    } else {
-        shadow[arrow->id].attr0 = ATTR0_HIDE;
-    }
+    ArrowData data;
+    createData(&data, arrow->type);
+    shadow[arrow->id].attr0 = arrow->ypos | data.baseAttr0;
+    shadow[arrow->id].attr1 = data.baseAttr1;
+    shadow[arrow->id].attr2 = data.baseAttr2;
+}
+static void hideArrow(GameArrow *arrow) {
+    shadow[arrow->id].attr0 = ATTR0_HIDE;
 }
 static void drawScore(int score) {
     char scoreText[7];
@@ -109,7 +108,7 @@ void drawAppState(AppState *state) {
         cur = cur->next;
     }
     while (state->toBeUndrawn->size) {
-        drawArrow(dequeueArrow(state->toBeUndrawn));
+        hideArrow(dequeueArrow(state->toBeUndrawn));
     }
     drawRectDMA(218, 3, 20, 10, WHITE);
     drawScore(state->score);
