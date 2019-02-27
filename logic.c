@@ -113,6 +113,7 @@ static void parseTrackFrame(const int frame[4], AppState *appState) {
 }
 static void parseKeyPress(ArrowType pressedKey, AppState *state) {
     GameArrow *cur = state->arrowQueue->head;
+    if (!cur) {return;}
     for (int i = 0; i < 5; i++) {
         if (!cur) {
             state->score -= MAXWINDOW;

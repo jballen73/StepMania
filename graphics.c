@@ -9,7 +9,6 @@
 // Example for the provided garbage image:
 //#include "images/garbage.h"
 static void drawSprites(void);
-char* itoa(int, char* , int);
 volatile OamEntry shadow[128];
 //volatile OamEntry* playerCharacter = &shadow[0];
 
@@ -69,7 +68,11 @@ static void drawArrow(GameArrow *arrow) {
         shadow[arrow->id].attr0 = ATTR0_HIDE;
     }
 }
-
+static void drawScore(int score) {
+    char scoreText[7];
+    sprintf(scoreText, "%d", score);
+    drawString(218, 3, scoreText, BLACK);
+}
 static void drawSprites(void) {
     DMA[3].src = shadow;
     DMA[3].dst = OAMMEM;
@@ -89,6 +92,7 @@ void fullDrawAppState(AppState *state) {
 void undrawAppState(AppState *state) {
     // TA-TODO: IMPLEMENT.
     UNUSED(state);
+    
 }
 
 // This function will be used to draw things that might have moved in a frame.
@@ -107,6 +111,8 @@ void drawAppState(AppState *state) {
     while (state->toBeUndrawn->size) {
         drawArrow(dequeueArrow(state->toBeUndrawn));
     }
+    drawRectDMA(218, 3, 20, 10, WHITE);
+    drawScore(state->score);
     drawSprites();
 }
 
