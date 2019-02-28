@@ -102,13 +102,30 @@ void drawAppState(AppState *state) {
 
        // state->levelChange--;
     //}
-    GameArrow *cur = state->arrowQueue->head;
+    GameArrow *cur = state->aQueue->head;
+    while (cur) {
+        drawArrow(cur);
+        cur = cur->next;
+    }
+    cur = state->bQueue->head;
+    while (cur) {
+        drawArrow(cur);
+        cur = cur->next;
+    }
+    cur = state->downQueue->head;
+    while (cur) {
+        drawArrow(cur);
+        cur = cur->next;
+    }
+    cur = state->rightQueue->head;
     while (cur) {
         drawArrow(cur);
         cur = cur->next;
     }
     while (state->toBeUndrawn->size) {
-        hideArrow(dequeueArrow(state->toBeUndrawn));
+        cur = dequeueArrow(state->toBeUndrawn);
+        hideArrow(cur);
+        enqueueArrow(state->arrows, cur);
     }
     drawRectDMA(218, 3, 20, 10, WHITE);
     drawScore(state->score);

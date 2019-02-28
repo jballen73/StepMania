@@ -19,7 +19,7 @@ if __name__ == "__main__":
     header.close()
     trackStr = "{\n"
     len = 0;
-    limit = 4096
+    limit = 8192
     aPress = False
     bPress = False
     downPress = False
@@ -45,7 +45,7 @@ if __name__ == "__main__":
                 bPress = True
         else:
             bPress = False
-        if keyboard.is_pressed('down'):
+        if keyboard.is_pressed('up'):
             if not downPress:
                 timeStr += 2
                 downPress = True

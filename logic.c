@@ -3,21 +3,50 @@
 #include "gba.h"
 #include <stdlib.h>
 #include "images/sprites.h"
-#include "tracks/testTrack.h"
+#include "tracks/marioTrack.h"
 //extern volatile OamEntry* shadow;
+void enqueueArrow(GameArrowQueue *queue, GameArrow *arrow) {
+    queue->tail->next = arrow;
+    queue->tail = arrow;
+    if (!queue->size) {
+        queue->head = arrow;
+    }
+    queue->size++;
+}
 void initializeAppState(AppState* appState) {
     // TA-TODO: Initialize everything that's part of this AppState struct here.
     // Suppose the struct contains random values, make sure everything gets
     // the value it should have when the app begins.
-    GameArrowQueue *gaQueue = malloc(sizeof(GameArrowQueue));
-    gaQueue->head = NULL;
-    gaQueue->tail = NULL;
-    gaQueue->size = 0;
+    GameArrowQueue *newAQueue = malloc(sizeof(GameArrowQueue));
+    newAQueue->head = NULL;
+    newAQueue->tail = NULL;
+    newAQueue->size = 0;
+
+    GameArrowQueue *newBQueue = malloc(sizeof(GameArrowQueue));
+    newBQueue->head = NULL;
+    newBQueue->tail = NULL;
+    newBQueue->size = 0;
+
+    GameArrowQueue *newDownQueue = malloc(sizeof(GameArrowQueue));
+    newDownQueue->head = NULL;
+    newDownQueue->tail = NULL;
+    newDownQueue->size = 0;
+
+    GameArrowQueue *newRightQueue = malloc(sizeof(GameArrowQueue));
+    newRightQueue->head = NULL;
+    newRightQueue->tail = NULL;
+    newRightQueue->size = 0;
 
     GameArrowQueue *undrawnQueue = malloc(sizeof(GameArrowQueue));
     undrawnQueue->head = NULL;
     undrawnQueue->tail = NULL;
     undrawnQueue->size = 0;
+
+    GameArrowQueue *gaQueue = malloc(sizeof(GameArrowQueue));
+    gaQueue->head = NULL;
+    gaQueue->tail = NULL;
+    gaQueue->size = 0;
+
 
     for (int i = 0; i < 128; i++) {
         GameArrow *newArrow = malloc(sizeof(GameArrow));
@@ -26,27 +55,24 @@ void initializeAppState(AppState* appState) {
         newArrow->next = NULL;
         newArrow->type = A_PRESS;
         newArrow->ypos = 128;
-        appState->arrows[i] = newArrow;
+        enqueueArrow(gaQueue, newArrow);
     }
 
 
     appState->gameOver = 0;
     appState->score = 0;
-    appState->arrowQueue = gaQueue;
+    appState->arrows = gaQueue;
+    appState->aQueue = newAQueue;
+    appState->bQueue = newBQueue;
+    appState->downQueue = newDownQueue;
+    appState->rightQueue = newRightQueue;
     appState->toBeUndrawn = undrawnQueue;
     appState->curTime = 0;
-    appState->track = &testTrack;
+    appState->track = &marioTrack;
 }
 
 
-static void enqueueArrow(GameArrowQueue *queue, GameArrow *arrow) {
-    queue->tail->next = arrow;
-    queue->tail = arrow;
-    if (!queue->size) {
-        queue->head = arrow;
-    }
-    queue->size++;
-}
+
 GameArrow* dequeueArrow(GameArrowQueue *queue) {
     GameArrow* arrow = queue->head;
     queue->head = queue->head->next;
@@ -57,109 +83,122 @@ GameArrow* dequeueArrow(GameArrowQueue *queue) {
     arrow->next = NULL;
     return arrow;
 }
-static GameArrow* removeArrow(GameArrowQueue *queue, int index) {
-    if (index >= queue->size) {return NULL;}
-    if (index == 0) {
-        return dequeueArrow(queue);
+// static GameArrow* removeArrow(GameArrowQueue *queue, int index) {
+//     if (index >= queue->size) {return NULL;}
+//     if (index == 0) {
+//         return dequeueArrow(queue);
 
-    }
-    GameArrow *arrow = queue->head;
-    GameArrow *prev = queue->head;
-    for (int i = 0; i < index; i++) {
-        prev = arrow;
-        arrow = arrow->next;
-    }
-    prev->next = arrow->next;
-    if (index == queue->size - 1) {
-        queue->tail = prev;
-    }
+//     }
+//     GameArrow *arrow = queue->head;
+//     GameArrow *prev = queue->head;
+//     for (int i = 0; i < index; i++) {
+//         prev = arrow;
+//         arrow = arrow->next;
+//     }
+//     prev->next = arrow->next;
+//     if (index == queue->size - 1) {
+//         queue->tail = prev;
+//     }
+//     arrow->next = NULL;
+//     queue->size--;
+//     return arrow;
+// }
+static void instantiateNewArrow(ArrowType type, GameArrowQueue *arrows, GameArrowQueue *queue) {
+    GameArrow *arrow = dequeueArrow(arrows);
+    arrow->inUse = 1;
+    arrow->type = type;
+    arrow->ypos = 128;
     arrow->next = NULL;
-    queue->size--;
-    return arrow;
-}
-static void instantiateNewArrow(ArrowType type, GameArrow *arrows[], GameArrowQueue *queue) {
-    for (int i = 0; i < 128; i++) {
-        int index = (queue->tail->id + i) % 128;
-        if (!arrows[index]->inUse) {
-            arrows[index]->inUse = 1;
-            arrows[index]->type = type;
-            arrows[index]->ypos = 128;
-            arrows[index]->next = NULL;
-            enqueueArrow(queue, arrows[index]);
-            return;
-        }
-    }
+    enqueueArrow(queue, arrow);
+    
 }
 static void updateArrows(AppState *appState) {
-    GameArrow *cur = appState->arrowQueue->head;
-    for (int i = 0; i < appState->arrowQueue->size; i++) {
-        cur->ypos-= 3;
-        if (cur->ypos < 0) {
-            appState->score -= MAXWINDOW;
-            cur->inUse = 0;
-            //dequeueArrow(appState->arrowQueue);
-            
-            enqueueArrow(appState->toBeUndrawn, removeArrow(appState->arrowQueue, i));
-        }
+    GameArrow *cur = appState->aQueue->head;
+    while (cur) {
+        cur->ypos -= TIMESTEP;
         cur = cur->next;
+    }
+    cur = appState->bQueue->head;
+    while (cur) {
+        cur->ypos -= TIMESTEP;
+        cur = cur->next;
+    }
+    cur = appState->downQueue->head;
+    while (cur) {
+        cur->ypos -= TIMESTEP;
+        cur = cur->next;
+    }
+    cur = appState->rightQueue->head;
+    while (cur) {
+        cur->ypos -= TIMESTEP;
+        cur = cur->next;
+    }
+    while (appState->aQueue->size && appState->aQueue->head->ypos < 0) {
+        cur = dequeueArrow(appState->aQueue);
+        cur->inUse = 0;
+        enqueueArrow(appState->toBeUndrawn, cur);
+    }
+    while (appState->bQueue->size && appState->bQueue->head->ypos < 0) {
+        cur = dequeueArrow(appState->bQueue);
+        cur->inUse = 0;
+        enqueueArrow(appState->toBeUndrawn, cur);
+    }
+    while (appState->downQueue->size && appState->downQueue->head->ypos < 0) {
+        cur = dequeueArrow(appState->downQueue);
+        cur->inUse = 0;
+        enqueueArrow(appState->toBeUndrawn, cur);
+    }
+    while (appState->rightQueue->size && appState->rightQueue->head->ypos < 0) {
+        cur = dequeueArrow(appState->rightQueue);
+        cur->inUse = 0;
+        enqueueArrow(appState->toBeUndrawn, cur);
     }
 }
 static void parseTrackFrame(const char frame, AppState *appState) {
     if (!frame) {return;}
     if (frame & 8) {
-        instantiateNewArrow(A_PRESS, appState->arrows, appState->arrowQueue);
+        instantiateNewArrow(A_PRESS, appState->arrows, appState->aQueue);
     }
     if (frame & 4) {
-        instantiateNewArrow(B_PRESS, appState->arrows, appState->arrowQueue);
+        instantiateNewArrow(B_PRESS, appState->arrows, appState->bQueue);
     }
     if (frame & 2) {
-        instantiateNewArrow(DOWN_ARROW, appState->arrows, appState->arrowQueue);
+        instantiateNewArrow(DOWN_ARROW, appState->arrows, appState->downQueue);
     }
     if (frame & 1) {
-        instantiateNewArrow(RIGHT_ARROW, appState->arrows, appState->arrowQueue);
+        instantiateNewArrow(RIGHT_ARROW, appState->arrows, appState->rightQueue);
     }
 }
-static void parseKeyPress(ArrowType pressedKey, AppState *state) {
-    GameArrow *cur = state->arrowQueue->head;
-    if (!cur) {return;}
-    for (int i = 0; i < 5; i++) {
-        if (!cur) {
-            state->score -= MAXWINDOW;
-            return;
-        }
-        if (cur->type == pressedKey) {
-            if (cur->ypos < MAXWINDOW) {
-                cur->inUse = 0;
-                removeArrow(state->arrowQueue, i);
-                enqueueArrow(state->toBeUndrawn, cur);
-                state->score += (MAXWINDOW - cur->ypos);
-                return;
-            } else {
-                break;
-            }
-        }
-        cur = cur->next;
+static void parseKeyPress(GameArrowQueue *queue, AppState *state) {
+    if (!queue->head) {
+        state->score -= MAXWINDOW;
+        return;
     }
-    if (state->arrowQueue->head->ypos < 5) {
-        enqueueArrow(state->toBeUndrawn, dequeueArrow(state->arrowQueue));
+    if (queue->head->ypos < MAXWINDOW) {
+        GameArrow *cur = dequeueArrow(queue);
+        cur->inUse = 0;
+        enqueueArrow(state->toBeUndrawn, cur);
+        state->score += (MAXWINDOW - cur->ypos);
+    } else {
+        state->score -= MAXWINDOW;
+        return;
     }
-    state->score -= MAXWINDOW;
 }
 // This function processes your current app state and returns the new (i.e. next)
 // state of your application.
 AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 keysPressedNow) {
     AppState nextAppState = *currentAppState;
     if (KEY_JUST_PRESSED(BUTTON_A, keysPressedNow, keysPressedBefore)) {
-        parseKeyPress(A_PRESS, &nextAppState);
+        parseKeyPress(currentAppState->aQueue, &nextAppState);
     }
     if (KEY_JUST_PRESSED(BUTTON_B, keysPressedNow, keysPressedBefore)) {
-        parseKeyPress(B_PRESS, &nextAppState);
+        parseKeyPress(currentAppState->bQueue, &nextAppState);
     }
     if (KEY_JUST_PRESSED(BUTTON_DOWN, keysPressedNow, keysPressedBefore)) {
-        parseKeyPress(DOWN_ARROW, &nextAppState);
+        parseKeyPress(currentAppState->downQueue, &nextAppState);
     }
     if (KEY_JUST_PRESSED(BUTTON_RIGHT, keysPressedNow, keysPressedBefore)) {
-        parseKeyPress(RIGHT_ARROW, &nextAppState);
+        parseKeyPress(currentAppState->rightQueue, &nextAppState);
     }
     updateArrows(&nextAppState);
     parseTrackFrame((nextAppState.track->track)[currentAppState->curTime], &nextAppState);

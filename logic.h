@@ -10,6 +10,7 @@
 #define POS3 (121)
 #define POS4 (155)
 #define MAXWINDOW (8)
+#define TIMESTEP (3)
 typedef struct GameArrow GameArrow;
 
 typedef enum {
@@ -37,15 +38,18 @@ typedef struct {
     int baseAttr2;
 } ArrowData;
 typedef struct {
-    const char track[4096];
+    const char track[8192];
     int length;
 } Track;
 typedef struct {
     // Store whether or not the game is over in this member:
     int gameOver;
     int score;
-    GameArrow *arrows[128];
-    GameArrowQueue *arrowQueue;
+    GameArrowQueue *arrows;
+    GameArrowQueue *aQueue;
+    GameArrowQueue *bQueue;
+    GameArrowQueue *downQueue;
+    GameArrowQueue *rightQueue;
     GameArrowQueue *toBeUndrawn;
     Track *track;
     int curTime;
@@ -72,4 +76,5 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
 // file, you can add them here. You likely won't.
 void createData(ArrowData *data, ArrowType type);
 GameArrow* dequeueArrow(GameArrowQueue *queue);
+void enqueueArrow(GameArrowQueue *queue, GameArrow *arrow);
 #endif
