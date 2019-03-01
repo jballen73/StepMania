@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "images/sprites.h"
 #include "tracks/marioTrack.h"
+#include "tracks/metronomeTrack.h"
 //extern volatile OamEntry* shadow;
 void enqueueArrow(GameArrowQueue *queue, GameArrow *arrow) {
     queue->tail->next = arrow;
@@ -137,21 +138,25 @@ static void updateArrows(AppState *appState) {
         cur = dequeueArrow(appState->aQueue);
         cur->inUse = 0;
         enqueueArrow(appState->toBeUndrawn, cur);
+        appState->score -= PENALTY;
     }
     while (appState->bQueue->size && appState->bQueue->head->ypos < 0) {
         cur = dequeueArrow(appState->bQueue);
         cur->inUse = 0;
         enqueueArrow(appState->toBeUndrawn, cur);
+        appState->score -= PENALTY;
     }
     while (appState->downQueue->size && appState->downQueue->head->ypos < 0) {
         cur = dequeueArrow(appState->downQueue);
         cur->inUse = 0;
         enqueueArrow(appState->toBeUndrawn, cur);
+        appState->score -= PENALTY;
     }
     while (appState->rightQueue->size && appState->rightQueue->head->ypos < 0) {
         cur = dequeueArrow(appState->rightQueue);
         cur->inUse = 0;
         enqueueArrow(appState->toBeUndrawn, cur);
+        appState->score -= PENALTY;
     }
 }
 static void parseTrackFrame(const char frame, AppState *appState) {
@@ -171,16 +176,20 @@ static void parseTrackFrame(const char frame, AppState *appState) {
 }
 static void parseKeyPress(GameArrowQueue *queue, AppState *state) {
     if (!queue->head) {
-        state->score -= MAXWINDOW;
+        //state->score -= PENALTY;
         return;
     }
     if (queue->head->ypos < MAXWINDOW) {
         GameArrow *cur = dequeueArrow(queue);
         cur->inUse = 0;
         enqueueArrow(state->toBeUndrawn, cur);
-        state->score += (MAXWINDOW - cur->ypos);
+        int scoreIncrement = MAXWINDOW - cur->ypos;
+        if (cur->ypos < 5) {
+            scoreIncrement -= (5 - cur->ypos);
+        }
+        state->score += scoreIncrement;
     } else {
-        state->score -= MAXWINDOW;
+        state->score -= PENALTY;
         return;
     }
 }

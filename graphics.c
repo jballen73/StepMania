@@ -70,7 +70,7 @@ static void hideArrow(GameArrow *arrow) {
 static void drawScore(int score) {
     char scoreText[7];
     sprintf(scoreText, "%d", score);
-    drawString(218, 3, scoreText, BLACK);
+    drawString(200, 13, scoreText, BLACK);
 }
 static void drawSprites(void) {
     DMA[3].src = shadow;
@@ -127,7 +127,7 @@ void drawAppState(AppState *state) {
         hideArrow(cur);
         enqueueArrow(state->arrows, cur);
     }
-    drawRectDMA(218, 3, 20, 10, WHITE);
+    drawRectDMA(200, 13, 40, 10, WHITE);
     drawScore(state->score);
     drawSprites();
 }

@@ -9,7 +9,8 @@
 #define POS2 (87)
 #define POS3 (121)
 #define POS4 (155)
-#define MAXWINDOW (8)
+#define MAXWINDOW (18)
+#define PENALTY (10)
 #define TIMESTEP (3)
 typedef struct GameArrow GameArrow;
 

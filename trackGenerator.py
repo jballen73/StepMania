@@ -1,6 +1,7 @@
 
 import keyboard
 import time
+import datetime
 if __name__ == "__main__":
 
     trackName = input("Enter Track Name: ")
@@ -27,9 +28,10 @@ if __name__ == "__main__":
     skip = False
     print("Go!")
     for i in range(limit):
+        startTime = datetime.datetime.now()
         if skip:
             trackStr += "0, "
-            if i % 7 == 0:
+            if i % 40 == 0:
                 trackStr += "\n"
             continue
         timeStr = 0
@@ -45,7 +47,7 @@ if __name__ == "__main__":
                 bPress = True
         else:
             bPress = False
-        if keyboard.is_pressed('up'):
+        if keyboard.is_pressed('up') or keyboard.is_pressed('down'):
             if not downPress:
                 timeStr += 2
                 downPress = True
@@ -58,13 +60,15 @@ if __name__ == "__main__":
         else:
             rightPress = False
         trackStr += str(timeStr) + ", "
-        if i % 7 == 0:
+        if i % 20 == 0:
             trackStr += "\n"
         if keyboard.is_pressed('return'):
             len = i
             skip = True
+        endTime = datetime.datetime.now()
+        while endTime - startTime < datetime.timedelta(seconds=1/60):
+            endTime = datetime.datetime.now()
 
-        time.sleep(1/60)
     trackStr += "}"
     mainFile = open("tracks\\" + trackName + ".c", "w+")
     mainFile.write('#include "' + trackName + '.h"\n')
