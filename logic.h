@@ -12,8 +12,9 @@
 #define MAXWINDOW (18)
 #define PENALTY (10)
 #define TIMESTEP (3)
+#define NOTEPROB (16)
 typedef struct GameArrow GameArrow;
-
+typedef struct Line Line;
 typedef enum {
     RIGHT_ARROW,
     DOWN_ARROW,
@@ -27,12 +28,22 @@ struct GameArrow {
     int ypos;
     GameArrow *next;
 };
+struct Line {
+    int xpos;
+    int ypos;
+    int id;
+    Line *next;
+};
 typedef struct{
     GameArrow *head;
     GameArrow *tail;
     int size;
 } GameArrowQueue;
-
+typedef struct {
+    Line *head;
+    Line *tail;
+    int size;
+} LineQueue;
 typedef struct {
     int baseAttr0;
     int baseAttr1;
@@ -46,12 +57,18 @@ typedef struct {
     // Store whether or not the game is over in this member:
     int gameOver;
     int score;
+    int useTrack;
+    int fpn;
+    int len;
     GameArrowQueue *arrows;
     GameArrowQueue *aQueue;
     GameArrowQueue *bQueue;
     GameArrowQueue *downQueue;
     GameArrowQueue *rightQueue;
     GameArrowQueue *toBeUndrawn;
+    LineQueue *lines;
+    LineQueue *inUseLines;
+    LineQueue *toBeUndrawnLines;
     Track *track;
     int curTime;
 } AppState;
@@ -78,4 +95,6 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
 void createData(ArrowData *data, ArrowType type);
 GameArrow* dequeueArrow(GameArrowQueue *queue);
 void enqueueArrow(GameArrowQueue *queue, GameArrow *arrow);
+void enqueueLine(LineQueue *queue, Line *line);
+Line* dequeueLine(LineQueue *queue);
 #endif

@@ -48,6 +48,7 @@ int main(void) {
             break;
         case START_WAIT_FOR_INPUT:
             waitForVBlank();
+            frameCounter = randint(0, 100);
             if (KEY_JUST_PRESSED(BUTTON_START, currentButtons, previousButtons)) {
                 state = APP_INIT;
                 frameCounter = 0;

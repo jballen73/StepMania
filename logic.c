@@ -14,6 +14,14 @@ void enqueueArrow(GameArrowQueue *queue, GameArrow *arrow) {
     }
     queue->size++;
 }
+void enqueueLine(LineQueue *queue, Line *line) {
+    queue->tail->next = line;
+    queue->tail = line;
+    if (!queue->size) {
+        queue->head = line;
+    }
+    queue->size++;
+}
 void initializeAppState(AppState* appState) {
     // TA-TODO: Initialize everything that's part of this AppState struct here.
     // Suppose the struct contains random values, make sure everything gets
@@ -48,8 +56,22 @@ void initializeAppState(AppState* appState) {
     gaQueue->tail = NULL;
     gaQueue->size = 0;
 
+    LineQueue *lineQueue = malloc(sizeof(LineQueue));
+    lineQueue->head = NULL;
+    lineQueue->tail = NULL;
+    lineQueue->size = 0;
 
-    for (int i = 0; i < 128; i++) {
+    LineQueue *inUseLineQueue = malloc(sizeof(LineQueue));
+    inUseLineQueue->head = NULL;
+    inUseLineQueue->tail = NULL;
+    inUseLineQueue->size = 0;
+
+    LineQueue *undrawnLineQueue = malloc(sizeof(LineQueue));
+    undrawnLineQueue->head = NULL;
+    undrawnLineQueue->tail = NULL;
+    undrawnLineQueue->size = 0;
+
+    for (int i = 0; i < 100; i++) {
         GameArrow *newArrow = malloc(sizeof(GameArrow));
         newArrow->inUse = 0;
         newArrow->id = i;
@@ -58,16 +80,29 @@ void initializeAppState(AppState* appState) {
         newArrow->ypos = 128;
         enqueueArrow(gaQueue, newArrow);
     }
-
+    for (int i = 100; i < 128; i++) {
+        Line *newLine = malloc(sizeof(Line));
+        newLine->ypos = 128;
+        newLine->xpos = 56;
+        newLine->id = i;
+        newLine->next = NULL;
+        enqueueLine(lineQueue, newLine);
+    }
 
     appState->gameOver = 0;
     appState->score = 0;
+    appState->useTrack = 0;
+    appState->fpn = 32;
+    appState->len = randint(4000, 4500);
     appState->arrows = gaQueue;
     appState->aQueue = newAQueue;
     appState->bQueue = newBQueue;
     appState->downQueue = newDownQueue;
     appState->rightQueue = newRightQueue;
     appState->toBeUndrawn = undrawnQueue;
+    appState->lines = lineQueue;
+    appState->inUseLines = inUseLineQueue;
+    appState->toBeUndrawnLines = undrawnLineQueue;
     appState->curTime = 0;
     appState->track = &marioTrack;
 }
@@ -75,6 +110,7 @@ void initializeAppState(AppState* appState) {
 
 
 GameArrow* dequeueArrow(GameArrowQueue *queue) {
+    if (!queue->size) {return NULL;}
     GameArrow* arrow = queue->head;
     queue->head = queue->head->next;
     queue->size--;
@@ -83,6 +119,17 @@ GameArrow* dequeueArrow(GameArrowQueue *queue) {
     }
     arrow->next = NULL;
     return arrow;
+}
+Line* dequeueLine(LineQueue *queue) {
+    if (!queue->size) {return NULL;}
+    Line* line = queue->head;
+    queue->head = queue->head->next;
+    queue->size--;
+    if (!queue->size) {
+        queue->tail = NULL;
+    }
+    line->next = NULL;
+    return line;
 }
 // static GameArrow* removeArrow(GameArrowQueue *queue, int index) {
 //     if (index >= queue->size) {return NULL;}
@@ -112,6 +159,28 @@ static void instantiateNewArrow(ArrowType type, GameArrowQueue *arrows, GameArro
     arrow->next = NULL;
     enqueueArrow(queue, arrow);
     
+}
+static void rollForNotes(AppState *state, int prob) {
+    int check = randint(0, 100);
+    if (check < prob) {
+        instantiateNewArrow(A_PRESS, state->arrows, state->aQueue);
+        check = randint(0, 100);
+    }
+    check = randint(0, 100);
+    if (check < prob) {
+        instantiateNewArrow(B_PRESS, state->arrows, state->bQueue);
+        check = randint(0, 100);
+    }
+    check = randint(0, 100);
+    if (check < prob) {
+        instantiateNewArrow(DOWN_ARROW, state->arrows, state->downQueue);
+        check = randint(0, 100);
+    }
+    check = randint(0, 100);
+    if (check < prob) {
+        instantiateNewArrow(RIGHT_ARROW, state->arrows, state->rightQueue);
+        check = randint(0, 100);
+    }
 }
 static void updateArrows(AppState *appState) {
     GameArrow *cur = appState->aQueue->head;
@@ -158,6 +227,29 @@ static void updateArrows(AppState *appState) {
         enqueueArrow(appState->toBeUndrawn, cur);
         appState->score -= PENALTY;
     }
+}
+static void updateLines(AppState *state) {
+    Line *cur = state->inUseLines->head;
+    if (!cur) {return;}
+    while (cur) {
+        cur->ypos -= TIMESTEP;
+        cur = cur->next;
+    }
+    while (state->inUseLines->size && state->inUseLines->head->ypos < 0) {
+        cur = dequeueLine(state->inUseLines);
+        enqueueLine(state->toBeUndrawnLines, cur);
+    }
+
+}
+static void createLines(AppState *state) {
+    Line *cur = dequeueLine(state->lines);
+    cur->ypos = 144;
+    cur->xpos = 56;
+    enqueueLine(state->inUseLines, cur);
+    cur = dequeueLine(state->lines);
+    cur->ypos = 144;
+    cur->xpos = 120;
+    enqueueLine(state->inUseLines, cur);
 }
 static void parseTrackFrame(const char frame, AppState *appState) {
     if (!frame) {return;}
@@ -210,12 +302,30 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
         parseKeyPress(currentAppState->rightQueue, &nextAppState);
     }
     updateArrows(&nextAppState);
-    parseTrackFrame((nextAppState.track->track)[currentAppState->curTime], &nextAppState);
+    updateLines(&nextAppState);
+    if (currentAppState->useTrack) {
+        parseTrackFrame((nextAppState.track->track)[currentAppState->curTime], &nextAppState);
+        if (nextAppState.curTime > nextAppState.track->length) {
+            nextAppState.gameOver = 1;
+        }
+    } else {
+        if (nextAppState.curTime + 200 < nextAppState.len) {
+            if (currentAppState->curTime % currentAppState->fpn == 0) {
+                rollForNotes(&nextAppState, NOTEPROB);
+                createLines(&nextAppState);
+            } else if (currentAppState->curTime % (currentAppState->fpn / 2) == 0) {
+                rollForNotes(&nextAppState, NOTEPROB / 2);
+            } else if (currentAppState->curTime % (currentAppState->fpn / 4) == 0) {
+                rollForNotes(&nextAppState, NOTEPROB / 4);
+            }
+        }
+        if (nextAppState.curTime > nextAppState.len) {
+            nextAppState.gameOver = 1;
+        }
+    }
     nextAppState.curTime+= 1;
     
-    if (nextAppState.curTime > nextAppState.track->length) {
-        nextAppState.gameOver = 1;
-    }
+    
     return nextAppState;
 }
 

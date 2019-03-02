@@ -64,6 +64,18 @@ static void drawArrow(GameArrow *arrow) {
     shadow[arrow->id].attr1 = data.baseAttr1;
     shadow[arrow->id].attr2 = data.baseAttr2;
 }
+static void drawLines(LineQueue *queue) {
+    Line *cur = queue->head;
+    while (cur) {
+        shadow[cur->id].attr0 = cur->ypos | SPRITES_PALETTE_TYPE | LINE_SPRITE_SHAPE;
+        shadow[cur->id].attr1 = cur->xpos | LINE_SPRITE_SIZE;
+        shadow[cur->id].attr2 = LINE_PALETTE_ID | LINE_ID;
+        cur = cur->next;
+    }
+}
+static void undrawLine(Line *line) {
+    shadow[line->id].attr0 = ATTR0_HIDE;
+}
 static void hideArrow(GameArrow *arrow) {
     shadow[arrow->id].attr0 = ATTR0_HIDE;
 }
@@ -126,6 +138,12 @@ void drawAppState(AppState *state) {
         cur = dequeueArrow(state->toBeUndrawn);
         hideArrow(cur);
         enqueueArrow(state->arrows, cur);
+    }
+    drawLines(state->inUseLines);
+    while (state->toBeUndrawnLines->size) {
+        Line *curLine = dequeueLine(state->toBeUndrawnLines);
+        undrawLine(curLine);
+        enqueueLine(state->lines, curLine);
     }
     drawRectDMA(200, 13, 40, 10, WHITE);
     drawScore(state->score);
