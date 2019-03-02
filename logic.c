@@ -309,7 +309,7 @@ AppState processAppState(AppState *currentAppState, u32 keysPressedBefore, u32 k
             nextAppState.gameOver = 1;
         }
     } else {
-        if (nextAppState.curTime + 200 < nextAppState.len) {
+        if (nextAppState.curTime + 100 < nextAppState.len) {
             if (currentAppState->curTime % currentAppState->fpn == 0) {
                 rollForNotes(&nextAppState, NOTEPROB);
                 createLines(&nextAppState);

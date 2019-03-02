@@ -15,7 +15,7 @@ PROGNAME = StepMania
 # that will be compiled into your program. For example
 # if you have main.c and myLib.c then in the following
 # line you would put main.o and myLib.o
-OFILES = gba.o font.o logic.o graphics.o main.o images/sprites.o images/Background.o tracks/marioTrack.o tracks/metronomeTrack.o
+OFILES = gba.o font.o logic.o graphics.o main.o images/sprites.o images/Background.o tracks/marioTrack.o tracks/metronomeTrack.o images/trackModeSelection.o images/speedSelection.o
 
 ################################################################################
 # These are various settings used to make the GBA toolchain work
